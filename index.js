@@ -1,27 +1,34 @@
-const express = require("express")
-const mongoose = require("mongoose")
-const cors = require("cors")
-require("dotenv").config()
+// /api/index.js
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+require("dotenv").config();
 
-const app = express()
+const app = express();
+app.use(express.json());
+app.use(cors({
+    origin: "https://doctor-listing-task-frontend.vercel.app",
+    credentials: true
+}));
 
-app.use(express.json())
-app.use(cors({ origin: "http://localhost:3000", credentials: true }))
-app.use("/api/docter", require("./routes/docter.route"))
-
+app.use("/api/docter", require("../server/routes/docter.route"));
 
 app.use((req, res) => {
-    res.status(404).json({ message: "resource not found" }) 
-})
-
+    res.status(404).json({ message: "resource not found" });
+});
 
 app.use((err, req, res, next) => {
-    console.log(err)
-    res.status(500).json({ message: "server error", error: err.message })
-})
+    console.error(err);
+    res.status(500).json({ message: "server error", error: err.message });
+});
 
-mongoose.connect(process.env.MONGO_URL)
-mongoose.connection.once("open", () => {
-    console.log("mongo connected")
-    app.listen(process.env.PORT, console.log("server running..."))
-})
+let isConnected = false;
+
+module.exports = async (req, res) => {
+    if (!isConnected) {
+        await mongoose.connect(process.env.MONGO_URL);
+        isConnected = true;
+        console.log("MongoDB connected");
+    }
+    return app(req, res);
+};
