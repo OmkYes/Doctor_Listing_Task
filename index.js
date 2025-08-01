@@ -11,7 +11,7 @@ app.use(cors({
     credentials: true
 }));
 
-app.use("/api/docter", require("../server/routes/docter.route"));
+app.use("/api/docter", require("./routes/docter.route"));
 
 app.use((req, res) => {
     res.status(404).json({ message: "resource not found" });
