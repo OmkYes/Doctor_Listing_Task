@@ -1,16 +1,18 @@
-// /api/index.js
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
+
+// Middleware
 app.use(express.json());
 app.use(cors({
     origin: "https://doctor-listing-task-frontend.vercel.app",
     credentials: true
 }));
 
+// Routes
 app.use("/api/docter", require("./routes/docter.route"));
 
 app.use((req, res) => {
@@ -22,13 +24,17 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: "server error", error: err.message });
 });
 
-let isConnected = false;
+// MongoDB and server start
+const PORT = process.env.PORT || 5000;
 
-module.exports = async (req, res) => {
-    if (!isConnected) {
-        await mongoose.connect(process.env.MONGO_URL);
-        isConnected = true;
-        console.log("MongoDB connected");
-    }
-    return app(req, res);
-};
+mongoose.connect(process.env.MONGO_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+}).then(() => {
+    console.log("✅ MongoDB connected");
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on port ${PORT}`);
+    });
+}).catch((err) => {
+    console.error("❌ MongoDB connection error:", err.message);
+});
